@@ -1,12 +1,35 @@
-return (
-  <div className="auth">
-    <div className="auth-card">
-      <h2>SWP391 Admin</h2>
-      <p>Sign in to manage projects</p>
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import http from "../lib/http";
+import { setToken } from "../lib/auth";
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+export default function Login() {
+  const nav = useNavigate();
+  const [form, setForm] = useState({
+    username: "admin1",
+    password: "123456",
+    loginType: "ADMIN"
+  });
+  const [error, setError] = useState("");
 
-      <form onSubmit={submit}>
+  async function submit(e) {
+    e.preventDefault();
+    try {
+      const res = await http.post("/api/v1/auth/login", form);
+      setToken(res.data.token);
+      nav("/admin");
+    } catch {
+      setError("Login failed");
+    }
+  }
+
+  return (
+    <div className="auth">
+      <form className="card" onSubmit={submit}>
+        <h2>SWP391 Admin Login</h2>
+
+        {error && <p className="error">{error}</p>}
+
         <input
           placeholder="Username"
           value={form.username}
@@ -28,8 +51,8 @@ return (
           <option value="USER">USER</option>
         </select>
 
-        <button className="btn btn-primary">Login</button>
+        <button>Login</button>
       </form>
     </div>
-  </div>
-);
+  );
+}
