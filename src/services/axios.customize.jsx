@@ -37,7 +37,7 @@ instance.interceptors.response.use(
 
       // redirect
       if (typeof window !== "undefined") {
-        window.location.href = "/login";
+        window.location.href = "/";
       }
     }
 
