@@ -32,5 +32,6 @@ export function getCurrentRoles() {
 }
 
 export function isAdmin() {
-  return getCurrentRoles().includes('ADMIN')
+  const roles = getCurrentRoles()
+  return roles.includes('ADMIN') || roles.includes('ROLE_ADMIN')
 }

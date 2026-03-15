@@ -24,7 +24,7 @@ export default function ProfilePage() {
         address: data?.address || '',
       })
     } catch (err) {
-      setError(err?.response?.data?.message || 'Không load được profile')
+      setError(err?.response?.data?.message || 'Unable to load profile')
     } finally {
       setLoading(false)
     }
@@ -40,37 +40,37 @@ export default function ProfilePage() {
     e.preventDefault()
     try {
       await updateMeApi(form)
-      toast.success('Update profile xong')
+      toast.success('Profile updated successfully')
       loadProfile()
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Update fail')
+      toast.error(err?.response?.data?.message || 'Unable to update profile')
     }
   }
 
   const onDelete = async () => {
-    const ok = window.confirm('Xóa soft account này nha?')
+    const ok = window.confirm('Delete this account?')
     if (!ok) return
     try {
       await deleteMeApi()
       storage.clear()
-      toast.success('Account đã bị soft delete')
+      toast.success('Account deleted successfully')
       window.location.href = '/'
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Delete fail')
+      toast.error(err?.response?.data?.message || 'Unable to delete account')
     }
   }
 
   return (
     <div>
-      <PageHeader title="Profile" description="Xem và sửa thông tin account của chính bạn." />
+      <PageHeader title="Profile" description="Review your account details and update your personal information from one place." />
 
-      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="soft-card p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Summary</h2>
+      <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
+        <div className="soft-card p-6 md:p-7">
+          <h2 className="section-title">Account summary</h2>
           {loading ? (
-            <p className="mt-4 text-sm text-slate-500">Loading...</p>
+            <p className="mt-4 text-sm text-slate-500">Loading profile...</p>
           ) : (
-            <div className="mt-4 space-y-3 text-sm">
+            <div className="mt-5 space-y-3 text-sm">
               {[
                 ['Username', profile?.username || '-'],
                 ['Role', profile?.role || '-'],
@@ -78,22 +78,27 @@ export default function ProfilePage() {
                 ['Status', profile?.isActive ? 'Active' : 'Inactive'],
                 ['Created', profile?.createdAt || '-'],
               ].map(([label, value]) => (
-                <div key={label} className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div key={label} className="metric-tile flex items-start justify-between gap-4">
                   <span className="text-slate-500">{label}</span>
-                  <span className="text-right font-medium text-slate-900 break-all">{value}</span>
+                  <span className="break-all text-right font-semibold text-slate-950">{value}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="soft-card p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Edit account</h2>
-          {error ? <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
-          <form className="mt-4 grid gap-4 md:grid-cols-2" onSubmit={onSave}>
-            {['email', 'fullName', 'phone'].map((field) => (
+        <div className="soft-card p-6 md:p-7">
+          <h2 className="section-title">Edit profile</h2>
+          <p className="section-description">Update the information that is stored for your current account.</p>
+          {error ? <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
+          <form className="mt-5 grid gap-4 md:grid-cols-2" onSubmit={onSave}>
+            {[
+              ['email', 'Email'],
+              ['fullName', 'Full Name'],
+              ['phone', 'Phone'],
+            ].map(([field, label]) => (
               <div key={field}>
-                <label className="mb-2 block text-sm font-medium capitalize text-slate-700">{field}</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
                 <input className="soft-input" value={form[field]} onChange={(e) => updateField(field, e.target.value)} type={field === 'email' ? 'email' : 'text'} />
               </div>
             ))}
@@ -103,7 +108,7 @@ export default function ProfilePage() {
             </div>
             <div className="md:col-span-2 flex flex-col gap-3 sm:flex-row">
               <button className="soft-button-primary flex-1">Save changes</button>
-              <button type="button" onClick={onDelete} className="soft-button flex-1 border border-red-200 bg-red-50 text-red-700 hover:bg-red-100">Delete account</button>
+              <button type="button" onClick={onDelete} className="soft-button-danger flex-1">Delete account</button>
             </div>
           </form>
         </div>

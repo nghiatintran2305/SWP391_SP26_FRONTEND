@@ -10,6 +10,9 @@ import IntegrationsPage from './pages/IntegrationsPage'
 import AdminAccountsPage from './pages/AdminAccountsPage'
 import CreateProjectGroupPage from './pages/CreateProjectGroupPage'
 import GroupMembersPage from './pages/GroupMembersPage'
+import MyGroupsPage from './pages/MyGroups'
+import MyTasksPage from './pages/MyTasks'
+import MyCommitsPage from './pages/MyCommits'
 import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
@@ -24,6 +27,9 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/change-password" element={<ChangePasswordPage />} />
           <Route path="/integrations" element={<IntegrationsPage />} />
+          <Route path="/my-groups" element={<MyGroupsPage />} />
+          <Route path="/my-tasks" element={<MyTasksPage />} />
+          <Route path="/my-commits" element={<MyCommitsPage />} />
           <Route path="/admin/accounts" element={<AdminAccountsPage />} />
           <Route path="/admin/project-groups" element={<CreateProjectGroupPage />} />
           <Route path="/admin/group-members" element={<GroupMembersPage />} />

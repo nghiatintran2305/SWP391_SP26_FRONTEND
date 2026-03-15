@@ -14,10 +14,10 @@ export default function ChangePasswordPage() {
     setLoading(true)
     try {
       await changePasswordApi(form)
-      toast.success('Đổi mật khẩu xong')
+      toast.success('Password updated successfully')
       setForm({ oldPassword: '', newPassword: '', confirmPassword: '' })
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Đổi mật khẩu fail')
+      toast.error(err?.response?.data?.message || 'Unable to update password')
     } finally {
       setLoading(false)
     }
@@ -25,17 +25,21 @@ export default function ChangePasswordPage() {
 
   return (
     <div>
-      <PageHeader title="Change password" description="Map đúng endpoint PUT /api/v1/accounts/me/change-password" />
-      <div className="max-w-2xl soft-card p-6">
+      <PageHeader title="Security" description="Update your account password using the secure backend endpoint already connected to this page." />
+      <div className="max-w-3xl soft-card p-6 md:p-7">
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {['oldPassword', 'newPassword', 'confirmPassword'].map((field) => (
+          {[
+            ['oldPassword', 'Current password'],
+            ['newPassword', 'New password'],
+            ['confirmPassword', 'Confirm new password'],
+          ].map(([field, label]) => (
             <div key={field}>
-              <label className="mb-2 block text-sm font-medium text-slate-700">{field}</label>
+              <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
               <input className="soft-input" type="password" value={form[field]} onChange={(e) => updateField(field, e.target.value)} required />
             </div>
           ))}
           <button className="soft-button-primary" disabled={loading}>
-            {loading ? 'Đang xử lý...' : 'Update password'}
+            {loading ? 'Updating password...' : 'Update password'}
           </button>
         </form>
       </div>

@@ -1,31 +1,46 @@
-import { useEffect, useState } from "react";
-import { getMyGroups } from "../features/projectGroup/projectGroup.api";
+import { useEffect, useState } from 'react'
+import PageHeader from '../components/PageHeader'
+import { getMyGroupsApi } from '../services/api'
 
 export default function MyGroupsPage() {
-  const [groups, setGroups] = useState([]);
-  const [error, setError] = useState("");
+  const [groups, setGroups] = useState([])
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    getMyGroups()
-      .then((res) => setGroups(res.data || []))
-      .catch(() => setError("Cannot load groups"));
-  }, []);
+    getMyGroupsApi()
+      .then((res) => setGroups(Array.isArray(res) ? res : []))
+      .catch((err) => setError(err?.response?.data?.message || 'Unable to load groups'))
+  }, [])
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">My Groups</h1>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {groups.map((g) => (
-          <div key={g.id} className="rounded-2xl border p-6 bg-white">
-            <h3 className="text-lg font-semibold">{g.groupName}</h3>
-            <p className="text-sm text-slate-500">{g.semester}</p>
-            {g.myRoleInGroup ? (
-              <p className="mt-2 font-medium">Role: {g.myRoleInGroup}</p>
-            ) : null}
+      <PageHeader title="My groups" description="Projects that the current account is currently assigned to." />
+      {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 2xl:grid-cols-3">
+        {groups.length ? groups.map((g) => (
+          <div key={g.id} className="soft-card p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-semibold text-slate-950">{g.projectName}</h3>
+                <p className="mt-2 text-sm text-slate-500">Project status: {g.status || '-'}</p>
+              </div>
+              <span className="soft-badge border-slate-200 bg-slate-50 text-slate-700">{g.status || 'N/A'}</span>
+            </div>
+            <div className="mt-5 space-y-3 text-sm text-slate-600">
+              <div className="metric-tile">
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Jira key</div>
+                <div className="mt-2 font-semibold text-slate-950">{g.jiraProjectKey || '-'}</div>
+              </div>
+              <div className="metric-tile">
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">GitHub repository</div>
+                <div className="mt-2 font-semibold text-slate-950 break-all">{g.githubRepoName || '-'}</div>
+              </div>
+            </div>
           </div>
-        ))}
+        )) : (
+          <div className="soft-card p-6 text-sm text-slate-500">No groups found for the current account.</div>
+        )}
       </div>
     </div>
-  );
+  )
 }

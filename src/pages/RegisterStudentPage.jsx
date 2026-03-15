@@ -26,33 +26,42 @@ export default function RegisterStudentPage() {
     setLoading(true)
     try {
       await registerStudentApi(form)
-      toast.success('Tạo student thành công')
+      toast.success('Student account created successfully')
       navigate('/', { replace: true })
     } catch (err) {
-      setError(err?.response?.data?.message || err?.response?.data?.error || 'Tạo tài khoản fail')
+      setError(err?.response?.data?.message || err?.response?.data?.error || 'Unable to create account')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-3xl">
-        <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold text-slate-900">Student Registration</h1>
-          <p className="mt-1 text-slate-600">Form này đang bám đúng endpoint /api/v1/accounts/register/student</p>
+    <div className="min-h-screen px-4 py-6 md:px-6 md:py-8">
+      <div className="mx-auto w-full max-w-[1200px]">
+        <div className="mb-8">
+          <div className="inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+            Registration
+          </div>
+          <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-950">Create a student account</h1>
+          <p className="mt-2 max-w-2xl text-sm text-slate-500 md:text-base">Fill in the required details to register a new student profile in the system.</p>
         </div>
 
-        <div className="soft-card p-6">
+        <div className="soft-card p-6 md:p-8">
           <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
-            {error ? <div className="md:col-span-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</div> : null}
+            {error ? <div className="md:col-span-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</div> : null}
 
-            {['username', 'email', 'password', 'fullName', 'phone'].map((field) => (
+            {[
+              ['username', 'Username', 'text'],
+              ['email', 'Email', 'email'],
+              ['password', 'Password', 'password'],
+              ['fullName', 'Full Name', 'text'],
+              ['phone', 'Phone', 'text'],
+            ].map(([field, label, type]) => (
               <div key={field}>
-                <label className="mb-2 block text-sm font-medium capitalize text-slate-700">{field}</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700">{label}</label>
                 <input
                   className="soft-input"
-                  type={field === 'password' ? 'password' : field === 'email' ? 'email' : 'text'}
+                  type={type}
                   value={form[field]}
                   onChange={(e) => updateField(field, e.target.value)}
                   required={['username', 'email', 'password'].includes(field)}
@@ -67,7 +76,7 @@ export default function RegisterStudentPage() {
 
             <div className="md:col-span-2 flex flex-col gap-3 sm:flex-row">
               <button className="soft-button-primary flex-1" disabled={loading}>
-                {loading ? 'Đang tạo...' : 'Create student'}
+                {loading ? 'Creating account...' : 'Create account'}
               </button>
               <Link to="/" className="soft-button-secondary flex-1 text-center">Back to login</Link>
             </div>

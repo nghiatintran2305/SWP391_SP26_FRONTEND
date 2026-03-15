@@ -1,111 +1,194 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import PageHeader from '../components/PageHeader'
 import {
   getGithubAuthorizeUrlApi,
-  getGithubMeApi,
   getJiraAuthorizeUrlApi,
-  getJiraLinkApi,
+  getMyLinkStatusApi,
+  handleGithubCallbackApi,
+  handleJiraCallbackApi,
   unlinkGithubApi,
   unlinkJiraApi,
 } from '../services/api'
 
-function IntegrationCard({ title, description, status, details, onConnect, onDisconnect }) {
+function IntegrationCard({ title, description, linked, details, busy, onConnect, onDisconnect }) {
   return (
-    <div className="soft-card p-6">
+    <div className="soft-card p-6 md:p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
-          <p className="mt-1 text-sm text-slate-600">{description}</p>
+          <h2 className="text-xl font-semibold text-slate-950">{title}</h2>
+          <p className="mt-2 text-sm text-slate-500">{description}</p>
         </div>
-        <span className={`soft-badge ${status === 'Linked' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>{status}</span>
+        <span
+          className={`soft-badge ${
+            linked
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+              : 'border-amber-200 bg-amber-50 text-amber-700'
+          }`}
+        >
+          {linked ? 'Linked' : 'Not linked'}
+        </span>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+      <div className="mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
         <pre className="m-0 whitespace-pre-wrap break-all font-sans">{details}</pre>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-        <button onClick={onConnect} className="soft-button-primary flex-1">Connect</button>
-        <button onClick={onDisconnect} className="soft-button-secondary flex-1">Unlink</button>
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+        <button
+          disabled={busy}
+          onClick={onConnect}
+          className="soft-button-primary flex-1 disabled:opacity-60"
+        >
+          {busy ? 'Processing...' : 'Connect'}
+        </button>
+        <button
+          disabled={busy || !linked}
+          onClick={onDisconnect}
+          className="soft-button-secondary flex-1 disabled:opacity-60"
+        >
+          Disconnect
+        </button>
       </div>
     </div>
   )
 }
 
 export default function IntegrationsPage() {
-  const [github, setGithub] = useState(null)
-  const [jira, setJira] = useState(null)
+  const [linkStatus, setLinkStatus] = useState(null)
+  const [busy, setBusy] = useState(false)
 
-  const load = async () => {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const callbackHandledRef = useRef(false)
+
+  const params = useMemo(() => new URLSearchParams(location.search), [location.search])
+  const code = params.get('code')
+  const state = params.get('state')
+
+  const load = useCallback(async () => {
     try {
-      const [githubRes, jiraRes] = await Promise.allSettled([getGithubMeApi(), getJiraLinkApi()])
-      setGithub(githubRes.status === 'fulfilled' ? githubRes.value : null)
-      setJira(jiraRes.status === 'fulfilled' ? jiraRes.value : null)
+      const status = await getMyLinkStatusApi()
+      setLinkStatus(status)
     } catch {
-      // noop
+      setLinkStatus(null)
     }
-  }
+  }, [])
 
   useEffect(() => {
     load()
-  }, [])
+  }, [load])
+
+  useEffect(() => {
+    const runOAuthCallback = async () => {
+      if (!code || !state) return
+      if (callbackHandledRef.current) return
+
+      callbackHandledRef.current = true
+      setBusy(true)
+
+      try {
+        if (state === 'github') {
+          await handleGithubCallbackApi(code)
+          toast.success('GitHub connected successfully')
+        } else if (state === 'jira') {
+          await handleJiraCallbackApi(code)
+          toast.success('Jira connected successfully')
+        } else {
+          toast.error('Invalid OAuth state')
+          return
+        }
+
+        await load()
+        navigate('/integrations', { replace: true })
+      } catch (err) {
+        toast.error(err?.response?.data?.message || 'OAuth callback failed')
+        navigate('/integrations', { replace: true })
+      } finally {
+        setBusy(false)
+      }
+    }
+
+    runOAuthCallback()
+  }, [code, state, navigate, load])
 
   const connectGithub = async () => {
     try {
       const url = await getGithubAuthorizeUrlApi()
-      window.open(url, '_blank', 'noopener,noreferrer')
+      window.location.href = url
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Không lấy được GitHub authorize URL')
+      toast.error(err?.response?.data?.message || 'Unable to get GitHub authorize URL')
     }
   }
 
   const connectJira = async () => {
     try {
       const url = await getJiraAuthorizeUrlApi()
-      window.open(url, '_blank', 'noopener,noreferrer')
+      window.location.href = url
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Không lấy được Jira authorize URL')
+      toast.error(err?.response?.data?.message || 'Unable to get Jira authorize URL')
     }
   }
 
   const disconnectGithub = async () => {
     try {
+      setBusy(true)
       await unlinkGithubApi()
-      toast.success('Đã unlink GitHub')
-      load()
+      await load()
+      toast.success('GitHub disconnected')
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Unlink GitHub fail')
+      toast.error(err?.response?.data?.message || 'Unable to disconnect GitHub')
+    } finally {
+      setBusy(false)
     }
   }
 
   const disconnectJira = async () => {
     try {
+      setBusy(true)
       await unlinkJiraApi()
-      toast.success('Đã unlink Jira')
-      load()
+      await load()
+      toast.success('Jira disconnected')
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Unlink Jira fail')
+      toast.error(err?.response?.data?.message || 'Unable to disconnect Jira')
+    } finally {
+      setBusy(false)
     }
   }
 
   return (
     <div>
-      <PageHeader title="Integrations" description="Trang link / unlink GitHub và Jira theo endpoint BE mới." />
-      <div className="grid gap-6 xl:grid-cols-2">
+      <PageHeader
+        title="Integrations"
+        description="Connect or disconnect your GitHub and Jira accounts. OAuth callbacks are handled automatically when the provider returns to this page."
+      />
+
+      <div className="grid gap-6 2xl:grid-cols-2">
         <IntegrationCard
           title="GitHub"
-          description="GET /api/github/authorize-url, /api/github/me, DELETE /api/github/unlink"
-          status={github ? 'Linked' : 'Not linked'}
-          details={github ? JSON.stringify(github, null, 2) : 'Chưa có mapping GitHub cho user này.'}
+          description="Connect GitHub to sync identity and unlock repository-based features for your current account."
+          linked={!!linkStatus?.githubLinked}
+          busy={busy}
+          details={
+            linkStatus?.githubLinked
+              ? JSON.stringify({ githubUsername: linkStatus.githubUsername }, null, 2)
+              : 'No GitHub mapping has been created for this account yet.'
+          }
           onConnect={connectGithub}
           onDisconnect={disconnectGithub}
         />
+
         <IntegrationCard
           title="Jira"
-          description="GET /api/v1/jira/oauth/authorize, /api/v1/jira/link, DELETE /api/v1/jira/link"
-          status={jira ? 'Linked' : 'Not linked'}
-          details={jira ? JSON.stringify(jira, null, 2) : 'Chưa có mapping Jira cho user này.'}
+          description="Connect Jira to sync your linked Jira identity and enable project/task automation in the workspace."
+          linked={!!linkStatus?.jiraLinked}
+          busy={busy}
+          details={
+            linkStatus?.jiraLinked
+              ? JSON.stringify({ jiraAccountId: linkStatus.jiraAccountId }, null, 2)
+              : 'No Jira mapping has been created for this account yet.'
+          }
           onConnect={connectJira}
           onDisconnect={disconnectJira}
         />
