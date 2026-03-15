@@ -1,7 +1,7 @@
 // src/pages/Login.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { userLoginApi } from "../services/api.service";
+import { getMeApi, userLoginApi } from "../services/api.service";
 import { storage } from "../utils/storage";
 import { jwtDecode } from "jwt-decode";
 
@@ -65,11 +65,44 @@ export default function LoginPage() {
       }
 
       // ROLE-BASED redirect (chuẩn RBAC)
-      const roles = decoded?.roles || payload?.roles || [];
-      if (roles.includes("ADMIN")) {
+      const collectRoles = (source) => {
+        const roles = source?.roles;
+        const role = source?.role;
+        const loginType = source?.loginType;
+        return [
+          ...(Array.isArray(roles) ? roles : roles ? [roles] : []),
+          ...(role ? [role] : []),
+          ...(loginType ? [loginType] : []),
+        ];
+      };
+
+      const normalizeRoles = (roleList) =>
+        roleList.filter(Boolean).map((role) => String(role).toUpperCase());
+
+      let normalizedRoles = normalizeRoles([
+        ...collectRoles(decoded),
+        ...collectRoles(payload),
+      ]);
+
+      if (normalizedRoles.length === 0) {
+        try {
+          const me = await getMeApi();
+          normalizedRoles = normalizeRoles(collectRoles(me));
+        } catch (meError) {
+          console.warn("Cannot load account info:", meError);
+        }
+      }
+
+      const isAdmin =
+        normalizedRoles.includes("ADMIN") ||
+        normalizedRoles.includes("ROLE_ADMIN");
+
+      storage.set("loginType", isAdmin ? "ADMIN" : "USER");
+
+      if (isAdmin) {
         navigate("/admin", { replace: true });
       } else {
-        navigate("/groups", { replace: true });
+        navigate("/home", { replace: true });
       }
     } catch (err) {
       console.error("Login error:", err);
