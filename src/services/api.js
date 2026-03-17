@@ -22,6 +22,7 @@ export const deleteAccountApi = (accountId) => http.delete(`/api/v1/accounts/${a
 
 export const getAllProjectsApi = () => http.get('/api/v1/projects').then(unwrap)
 export const getMyProjectsApi = () => http.get('/api/v1/projects/my-projects').then(unwrap)
+export const getMyWorkspaceProjectsApi = () => http.get('/api/v1/projects/my-workspace-projects').then(unwrap)
 export const getProjectByIdApi = (projectId) => http.get(`/api/v1/projects/${projectId}`).then(unwrap)
 export const createProjectApi = (payload) => http.post('/api/v1/projects', payload).then(unwrap)
 export const updateProjectApi = (projectId, payload) => http.put(`/api/v1/projects/${projectId}`, payload).then(unwrap)

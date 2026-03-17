@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import PageHeader from '../components/PageHeader'
 import StatCard from '../components/StatCard'
-import { getMeApi, getMyGroupsApi, getMyLinkStatusApi, getMyTaskStatsApi } from '../services/api'
+import { getMeApi, getMyLinkStatusApi, getMyTaskStatsApi, getMyWorkspaceProjectsApi } from '../services/api'
 import { getCurrentRoles, isAdmin } from '../utils/auth'
 
 export default function OverviewPage() {
@@ -13,7 +13,7 @@ export default function OverviewPage() {
   useEffect(() => {
     getMeApi().then(setMe).catch(() => null)
     getMyLinkStatusApi().then(setLinkStatus).catch(() => setLinkStatus(null))
-    getMyGroupsApi().then((data) => setMyGroups(Array.isArray(data) ? data : [])).catch(() => setMyGroups([]))
+    getMyWorkspaceProjectsApi().then((data) => setMyGroups(Array.isArray(data) ? data : [])).catch(() => setMyGroups([]))
     getMyTaskStatsApi().then(setTaskStats).catch(() => setTaskStats(null))
   }, [])
 

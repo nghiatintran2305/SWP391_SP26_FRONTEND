@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import PageHeader from '../components/PageHeader'
 import StatCard from '../components/StatCard'
-import { getMyCommitStatsApi, getMyGroupsApi, getMyLinkStatusApi } from '../services/api'
+import { getMyCommitStatsApi, getMyLinkStatusApi, getMyWorkspaceProjectsApi } from '../services/api'
 
 export default function MyCommitsPage() {
   const [groups, setGroups] = useState([])
@@ -11,13 +11,14 @@ export default function MyCommitsPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    Promise.all([getMyGroupsApi(), getMyLinkStatusApi()])
+    Promise.all([getMyWorkspaceProjectsApi(), getMyLinkStatusApi()])
       .then(([groupsRes, linkRes]) => {
         const groupList = Array.isArray(groupsRes) ? groupsRes : []
         setGroups(groupList)
         setLinkStatus(linkRes)
         const firstRepo = groupList.find((g) => g.githubRepoName)?.githubRepoName || ''
         setSelectedRepo(firstRepo)
+        setError('')
       })
       .catch((err) => setError(err?.response?.data?.message || 'Unable to load commit prerequisites'))
   }, [])
@@ -25,7 +26,10 @@ export default function MyCommitsPage() {
   useEffect(() => {
     if (!selectedRepo || !linkStatus?.githubUsername) return
     getMyCommitStatsApi(selectedRepo, linkStatus.githubUsername)
-      .then(setStats)
+      .then((res) => {
+        setStats(res)
+        setError('')
+      })
       .catch((err) => setError(err?.response?.data?.message || 'Unable to load commit stats'))
   }, [selectedRepo, linkStatus])
 

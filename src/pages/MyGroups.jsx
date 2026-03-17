@@ -1,20 +1,23 @@
 import { useEffect, useState } from 'react'
 import PageHeader from '../components/PageHeader'
-import { getMyGroupsApi } from '../services/api'
+import { getMyWorkspaceProjectsApi } from '../services/api'
 
 export default function MyGroupsPage() {
   const [groups, setGroups] = useState([])
   const [error, setError] = useState('')
 
   useEffect(() => {
-    getMyGroupsApi()
-      .then((res) => setGroups(Array.isArray(res) ? res : []))
+    getMyWorkspaceProjectsApi()
+      .then((res) => {
+        setGroups(Array.isArray(res) ? res : [])
+        setError('')
+      })
       .catch((err) => setError(err?.response?.data?.message || 'Unable to load groups'))
   }, [])
 
   return (
     <div className="space-y-6">
-      <PageHeader title="My groups" description="Projects that the current account is currently assigned to." />
+      <PageHeader title="My groups" description="Projects that the current account is currently assigned to or managing." />
       {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 2xl:grid-cols-3">
         {groups.length ? groups.map((g) => (
