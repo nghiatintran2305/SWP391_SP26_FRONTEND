@@ -9,7 +9,7 @@ import {
   getLinkedStudentsApi,
   getStudentsApi,
   updateAccountApi,
-} from '../services/api'
+} from '../services/api' //api
 
 const lecturerInit = {
   username: '',

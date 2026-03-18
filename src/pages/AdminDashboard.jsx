@@ -1,4 +1,4 @@
-
+//adminDashBoard
 import { useNavigate } from "react-router-dom";
 
 function ActionCard({ title, onClick }) {
@@ -28,3 +28,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+

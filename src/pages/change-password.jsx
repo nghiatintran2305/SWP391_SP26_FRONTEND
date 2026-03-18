@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { changePasswordApi } from "../services/api.service";
 import { logout } from "../utils/auth";
-
+//changepass
 export default function ChangePasswordPage() {
   const navigate = useNavigate();
 
