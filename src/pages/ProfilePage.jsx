@@ -1,3 +1,5 @@
+//profilePage
+
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import PageHeader from '../components/PageHeader'
@@ -70,7 +72,7 @@ export default function ProfilePage() {
           {loading ? (
             <p className="mt-4 text-sm text-slate-500">Loading...</p>
           ) : (
-            <div className="mt-4 space-y-3 text-sm">
+            <div className="mt-4 space-y-3 text-sm"> 
               {[
                 ['Username', profile?.username || '-'],
                 ['Role', profile?.role || '-'],
