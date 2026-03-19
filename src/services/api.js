@@ -43,7 +43,8 @@ export const getGithubAuthorizeUrlApi = () => http.get('/api/github/authorize-ur
 export const handleGithubCallbackApi = (code) => http.get('/api/github/callback', { params: { code } }).then(unwrap)
 export const getGithubMeApi = () => http.get('/api/github/me').then(unwrap)
 export const unlinkGithubApi = () => http.delete('/api/github/unlink').then(unwrap)
-export const getMyCommitStatsApi = (repoName, githubUsername) => http.get('/api/v1/users/me/github/commits', { params: { repoName, githubUsername } }).then(unwrap)
+export const getMyGithubReposApi = () => http.get('/api/v1/users/me/github/repos').then(unwrap)
+export const getMyCommitStatsApi = (repoName) => http.get('/api/v1/users/me/github/commits', { params: { repoName } }).then(unwrap)
 export const getProjectGithubTeamCommitsApi = (projectId, repoName) => http.get(`/api/v1/projects/${projectId}/github/commits/team`, { params: { repoName } }).then(unwrap)
 
 export const getJiraAuthorizeUrlApi = () => http.get('/api/v1/jira/oauth/authorize').then(unwrap)

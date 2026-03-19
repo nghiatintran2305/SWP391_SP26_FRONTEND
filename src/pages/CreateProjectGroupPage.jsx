@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import PageHeader from '../components/PageHeader'
 import {
@@ -6,6 +6,7 @@ import {
   deleteProjectApi,
   getAllProjectsApi,
   getLecturersApi,
+  getMyLinkStatusApi,
   updateProjectStatusApi,
 } from '../services/api'
 
@@ -17,14 +18,27 @@ export default function CreateProjectGroupPage() {
   const [created, setCreated] = useState(null)
   const [lecturers, setLecturers] = useState([])
   const [projects, setProjects] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [myLinkStatus, setMyLinkStatus] = useState(null)
+
+  const assignedLecturerIds = useMemo(() => new Set((projects || []).map((project) => project.lecturerId).filter(Boolean)), [projects])
 
   const load = async () => {
     try {
-      const [lecturersRes, projectsRes] = await Promise.all([getLecturersApi(), getAllProjectsApi()])
+      setLoading(true)
+      const [lecturersRes, projectsRes, linkStatusRes] = await Promise.all([
+        getLecturersApi(),
+        getAllProjectsApi(),
+        getMyLinkStatusApi().catch(() => null),
+      ])
       setLecturers(Array.isArray(lecturersRes) ? lecturersRes : [])
       setProjects(Array.isArray(projectsRes) ? projectsRes : [])
+      setMyLinkStatus(linkStatusRes)
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Unable to load projects')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -34,14 +48,43 @@ export default function CreateProjectGroupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!form.projectName.trim()) {
+      toast.error('Project name is required')
+      return
+    }
+
+    if (!form.lecturerAccountId) {
+      toast.error('Please select a lecturer')
+      return
+    }
+
+    if ((projects || []).some((project) => project.projectName?.trim()?.toLowerCase() === form.projectName.trim().toLowerCase())) {
+      toast.error('Project name already exists')
+      return
+    }
+
+    if (assignedLecturerIds.has(form.lecturerAccountId)) {
+      toast.error('This lecturer already has a project')
+      return
+    }
+
     try {
-      const data = await createProjectApi(form)
+      setSubmitting(true)
+      const data = await createProjectApi({
+        projectName: form.projectName.trim(),
+        lecturerAccountId: form.lecturerAccountId,
+      })
       setCreated(data)
       setForm(initialForm)
       await load()
       toast.success('Project created successfully')
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Unable to create project')
+      const message = err?.response?.data?.message || 'Unable to create project'
+      setCreated({ error: message })
+      toast.error(message)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -72,7 +115,14 @@ export default function CreateProjectGroupPage() {
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="soft-card p-6 md:p-7">
           <h2 className="section-title">Create project</h2>
-          <p className="section-description">Create a project using the backend contract already wired into this frontend.</p>
+          <p className="section-description">Create one project per lecturer. The lecturer must already have both Jira and GitHub linked before creation.</p>
+
+          {!!myLinkStatus && (!myLinkStatus.githubLinked || !myLinkStatus.jiraLinked) ? (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Your admin account can manage projects, but the selected lecturer must have both Jira and GitHub linked. Lecturer linking is validated on the backend during creation.
+            </div>
+          ) : null}
+
           <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">Project name</label>
@@ -82,12 +132,19 @@ export default function CreateProjectGroupPage() {
               <label className="mb-2 block text-sm font-medium text-slate-700">Lecturer</label>
               <select className="soft-select" value={form.lecturerAccountId} onChange={(e) => updateField('lecturerAccountId', e.target.value)} required>
                 <option value="">Select a lecturer</option>
-                {lecturers.map((lecturer) => (
-                  <option key={lecturer.id} value={lecturer.id}>{lecturer.fullName || lecturer.username} - {lecturer.email}</option>
-                ))}
+                {lecturers.map((lecturer) => {
+                  const isAssigned = assignedLecturerIds.has(lecturer.id)
+                  return (
+                    <option key={lecturer.id} value={lecturer.id} disabled={isAssigned}>
+                      {lecturer.fullName || lecturer.username} - {lecturer.email}{isAssigned ? ' (already assigned)' : ''}
+                    </option>
+                  )
+                })}
               </select>
             </div>
-            <button className="soft-button-primary w-full">Create project</button>
+            <button disabled={submitting || loading} className="soft-button-primary w-full disabled:opacity-60">
+              {submitting ? 'Creating...' : 'Create project'}
+            </button>
           </form>
 
           <div className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
