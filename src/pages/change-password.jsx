@@ -1,3 +1,4 @@
+// src/pages/change-password
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { changePasswordApi } from "../services/api.service";

@@ -1,3 +1,5 @@
+// src/pages/Mapping
+//checkmap
 import { useEffect, useState } from "react";
 import { getMyIdentity, updateMyIdentity } from "../features/identity/identity.api";
 

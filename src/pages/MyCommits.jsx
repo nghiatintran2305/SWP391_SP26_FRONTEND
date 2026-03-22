@@ -1,3 +1,5 @@
+// src/pages/commit.jsx
+
 import { useEffect, useState } from "react";
 import { getMyCommits } from "../features/github/github.api";
 
@@ -14,7 +16,7 @@ export default function MyCommitsPage() {
   if (data && data.mapped === false) {
     return <div className="p-6">Your GitHub account is not mapped.</div>;
   }
-
+//commit
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900">My Commits</h1>

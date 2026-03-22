@@ -1,3 +1,5 @@
+// src/pages/MyGroup
+
 import { useEffect, useState } from "react";
 import { getMyGroups } from "../features/projectGroup/projectGroup.api";
 
