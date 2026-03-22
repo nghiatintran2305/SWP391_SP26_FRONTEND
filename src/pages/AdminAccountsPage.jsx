@@ -1,16 +1,17 @@
+// src/pages/AdminAccount
 import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import PageHeader from '../components/PageHeader'
 import {
   createLecturerApi,
   deleteAccountApi,
-  getAllAccountsApi,
+  getAllAccountsApi,      //api
   getLecturersApi,
   getLinkedStudentsApi,
   getStudentsApi,
   updateAccountApi,
 } from '../services/api'
-
+//lectureInit
 const lecturerInit = {
   username: '',
   password: '',
