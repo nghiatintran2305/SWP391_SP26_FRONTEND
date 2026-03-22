@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getIntegrationConfigApi, syncIntegrationApi } from "../services/api.service";
 import { logout } from "../utils/auth";
 import { useCurrentUser } from "../hooks/useCurrentUser";
-
+//home
 export default function HomePage() {
   const navigate = useNavigate();
   const { currentUser: me } = useCurrentUser();
@@ -61,7 +61,7 @@ export default function HomePage() {
       setLoading(false);
     }
   };
-
+//topbar
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Topbar */}
