@@ -1,3 +1,4 @@
+// src/pages/ProfilePage
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import PageHeader from '../components/PageHeader'
@@ -5,7 +6,7 @@ import { deleteMeApi, getMeApi, updateMeApi } from '../services/api'
 import { storage } from '../utils/storage'
 
 const emptyForm = { email: '', fullName: '', phone: '', address: '' }
-
+//profileUser
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState(emptyForm)
